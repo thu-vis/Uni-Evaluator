@@ -1,0 +1,11 @@
+.vscode/
+__pycache__/
+backend/workspace.code-workspace
+buffer/
+scripts/
+datasets/
+logs/*
+pics/*
+sa_*.cpp
+*.ipynb
+*.jpeg

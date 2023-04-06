@@ -1,0 +1,11 @@
+static
+templates
+__pycache__
+qap_test
+genetic_reordering
+instances
+activenet
+coco
+imagenet
+tmp
+SA_GPU
