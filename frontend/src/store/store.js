@@ -11,6 +11,7 @@ export default new Vuex.Store({
         matrixDataSource: 'valid', // valid or train
         gridDataSource: 'single', // single or combined
         directionLen: 9,
+        hierarchySet: false,
     },
     mutations: {
         setMetadata(state, metadata) {
@@ -23,6 +24,11 @@ export default new Vuex.Store({
         },
         setGridDataSource(state, gridDataSource) {
             state.gridDataSource = gridDataSource;
+        },
+        setHierarchy(state, hierarchy) {
+            if (state.hierarchySet) return;
+            state.hierarchySet = true;
+            state.labelHierarchy = hierarchy;
         },
     },
     getters: {
@@ -38,9 +44,14 @@ export default new Vuex.Store({
         URL_HOVER_CONFUSION_MATRIX: (state) => state.APIBASE + '/api/hoverMatrixCell',
         URL_GET_ZOOM_IN_DIST: (state) => state.APIBASE + '/api/zoomInDist',
         URL_GET_IMAGE: (state) => {
-            return (boxID, showmode, showAllBox, iou, conf, hidebox=false) => state.APIBASE +
-            `/api/image?boxID=${boxID}&show=${showmode}&showall=${showAllBox}&iou=${iou}&conf=${conf}` +
-            `&hidebox=${hidebox}&gridSource=${state.gridDataSource}&matrixSource=${state.matrixDataSource}`;
+            return function(boxID, showmode, showAllBox, iou, conf, gtColor, prColor, hidebox=false) {
+                if (gtColor[0] === '#') gtColor = gtColor.substring(1);
+                if (prColor[0] === '#') prColor = prColor.substring(1);
+                return state.APIBASE +
+                    `/api/image?boxID=${boxID}&show=${showmode}&showall=${showAllBox}&iou=${iou}&conf=${conf}` +
+                    `&hidebox=${hidebox}&gridSource=${state.gridDataSource}&matrixSource=${state.matrixDataSource}` +
+                    `&gtColor=${gtColor}&prColor=${prColor}`;
+            };
         },
         URL_GET_IMAGEBOX: (state) => state.APIBASE + '/api/imagebox',
         URL_GET_IMAGES: (state) => state.APIBASE + '/api/images',

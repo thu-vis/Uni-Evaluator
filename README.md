@@ -1,7 +1,7 @@
-# Uni-Evaluator: A unified interactive model evaluation for classification, object detection, and segmentation in computer vision
+# Uni-Evaluator: A unified interactive model evaluation for classification, object detection, and instance segmentation in computer vision
 
 
-**Uni-Evaluator** is a visual analysis tool to support a unified model evaluation for different computer vision tasks, including classification, object detection, and segmentation.
+**Uni-Evaluator** is a visual analysis tool to support a unified model evaluation for different computer vision tasks, including classification, object detection, and instance segmentation.
 
 ![demo](demo.gif)
 
@@ -9,7 +9,7 @@
 ## Quick start
 ### 1. Download repo
 ```bash
-git clone https://github.com/Uni-Evaluator/Uni-Evaluator.git
+git clone https://github.com/thu-vis/Uni-Evaluator.git
 cd Uni-Evaluator
 ```
 ### 2. Setup environment

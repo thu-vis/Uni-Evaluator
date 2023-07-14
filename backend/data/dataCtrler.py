@@ -173,6 +173,7 @@ class DataCtrler(object):
             self.index2image[index] = image
         
         # init meta data
+        # suitable for two-level hierarchy
         with open(self.meta_path) as f:
             metas = json.load(f)
             categorys = metas["categories"]
@@ -193,6 +194,10 @@ class DataCtrler(object):
                 })
             self.names.append("background")
             self.classID2Idx[-1]=len(categorys)
+        
+        self.name2idx = {}
+        for i in range(len(self.names)):
+            self.name2idx[self.names[i]]=i
 
         # compute (prediction, label) pair
         # creates a map, with different IoU threshold (0.5~0.95 0.05) as key and (predict_label_pairs, iou) as value
@@ -420,8 +425,8 @@ class DataCtrler(object):
                         # if cannot find TP match and can match with iscrowd object, ignore
                         if iou_pair[_pr_idx, is_crowd_match[0]] > pos_thres:
                             continue
-                    gt_match_cnt[best_match] += 1
                     if len(not_is_crowd_match) > 0:
+                        gt_match_cnt[best_match] += 1
                         ret_ious = np.concatenate((ret_ious, [iou_pair[_pr_idx, best_match]]))
                         ret_match = np.concatenate((ret_match, np.array([[_pr_idx, best_match]])))
                         if iou_pair[_pr_idx, best_match] >= pos_thres:
@@ -653,10 +658,12 @@ class DataCtrler(object):
         ret_matrices = []
         query = self.getQuery(query)
         # print(query)
+        count_mat = None
         for statistics_mode in statistics_modes:
             mat = []
             if statistics_mode == 'count':
                 mat = tree.QueryMatrix('label', 'predict', query)
+                count_mat = mat
             elif statistics_mode == 'direction':
                 for i in range(9):
                     mat.append(tree.QueryMatrix('label', 'predict', {**query, 'direction': [i]}))
@@ -677,7 +684,34 @@ class DataCtrler(object):
                         else:
                             mat[i][j] = 0
         # print(ret_matrices)
-        return ret_matrices
+        # reorder after normalization by row
+        if count_mat is not None:
+            from scipy.cluster import hierarchy
+            count_mat = np.array(count_mat, dtype=np.float64)
+            reorder_hierarchy = self.hierarchy.copy()
+            top_level_mat = np.zeros((len(reorder_hierarchy), len(reorder_hierarchy)), dtype=np.float64)
+            for i in range(len(reorder_hierarchy)):
+                for j in range(len(reorder_hierarchy)):
+                    row_ids = [self.name2idx[name] for name in reorder_hierarchy[i]["children"]]
+                    col_ids = [self.name2idx[name] for name in reorder_hierarchy[j]["children"]]
+                    top_level_mat[i][j] = np.sum(count_mat[row_ids][:, col_ids])
+            top_level_mat /= (top_level_mat.sum(axis=1)+1).astype(np.float64) # normalize by row
+            top_order = hierarchy.leaves_list(hierarchy.optimal_leaf_ordering(hierarchy.linkage(top_level_mat, 'ward'), top_level_mat))
+            reorder_hierarchy = [reorder_hierarchy[i] for i in top_order]
+            count_mat /= (count_mat.sum(axis=1)+1).astype(np.float64)
+            for i in range(len(reorder_hierarchy)):
+                if len(reorder_hierarchy[i]["children"]) < 3:
+                    continue
+                cld_ids = [self.name2idx[name] for name in reorder_hierarchy[i]["children"]]
+                cld_mat = count_mat[cld_ids][:, cld_ids]
+                cld_order = hierarchy.leaves_list(hierarchy.optimal_leaf_ordering(hierarchy.linkage(cld_mat, 'ward'), cld_mat))
+                reorder_hierarchy[i]["children"] = [reorder_hierarchy[i]["children"][j] for j in cld_order]
+            # print(reorder_hierarchy)
+            
+        return {
+            'matrix': ret_matrices,
+            'hierarchy': reorder_hierarchy,
+        }
 
     def getDistributionByAttrName(self, query, target_attr, attr_range=[0, 1]):
         iou_thres, conf_thres = self.getThresholds(query)
@@ -827,9 +861,10 @@ class DataCtrler(object):
             "seg": self.segmentation
         }
     
-    def getImage(self, boxID: int, show: str, showall: str, iou_thres: float, conf_thres: float, hideBox = False):
-        gt_color = (27, 251, 254)
-        pr_color = (253, 6, 253)
+    def getImage(self, boxID: int, show: str, showall: str, iou_thres: float, conf_thres: float, hideBox = False,
+                 gt_color = 'rgb(27, 251, 254)', pr_color = 'rgb(253, 6, 253)'):
+        # gt_color = (27, 251, 254)
+        # pr_color = (253, 6, 253)
         img_format = os.listdir(self.images_path)[0].split('.')[-1]
         img = Image.open(os.path.join(self.images_path, self.index2image[self.pairIDtoImageID(boxID, iou_thres, conf_thres)]+f'.{img_format}'))
         amp = np.array([img.width,img.height,img.width,img.height])
@@ -959,17 +994,13 @@ class DataCtrler(object):
             list: images id
         """ 
         # convert list of label names to dict
-        labelNames = self.names
-        name2idx = {}
-        for i in range(len(labelNames)):
-            name2idx[labelNames[i]]=i
         # find images
         labelSet = set()
         for label in labels:
-            labelSet.add(name2idx[label])
+            labelSet.add(self.name2idx[label])
         predSet = set()
         for label in preds:
-            predSet.add(name2idx[label])
+            predSet.add(self.name2idx[label])
         query["label"] = list(labelSet)
         query["predict"] = list(predSet)
         sample_idx = self.filterSamples(query)

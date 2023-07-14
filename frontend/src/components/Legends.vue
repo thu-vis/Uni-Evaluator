@@ -71,7 +71,7 @@ export default {
             imgWidth: 40,
             imgHeight: 40,
             legendSpace: 200,
-            sizeColors: ['rgb(216,216,216)', 'rgb(255,142,146)', 'rgb(94,197,154)'],
+            sizeColors: ['rgb(216,216,216)', 'rgb(250,188,5)', 'rgb(124,198,39)'],
             gtColor: 'rgb(27, 251, 254)',
             prColor: 'rgb(253, 6, 253)',
             sizeAngles: [0, 0.45 * 2 * Math.PI, 0.8 * 2 * Math.PI, 2 * Math.PI],
@@ -93,6 +93,14 @@ export default {
         };
     },
     methods: {
+        updateColors: function(colors, gtColor, prColor) {
+            for (let i = 0; i < 3; ++i) {
+                this.sizeG.select(`#size-circle-${i}`)
+                    .attr('fill', colors[i]);
+            }
+            this.mainG.selectAll('.pr-rect').attr('stroke', prColor);
+            this.mainG.selectAll('.gt-rect').attr('stroke', gtColor);
+        },
         render: async function() {
             const maxTextLength = this.getTextWidth('Predictions shifted in',
                 `${this.fontWeight} ${this.fontSize}px Arial`);
@@ -122,6 +130,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.prG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', 0)
@@ -130,6 +139,7 @@ export default {
                 .attr('height', imgHeight);
             this.prG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', 15)
@@ -166,6 +176,7 @@ export default {
             for (let i = 0; i < 3; ++i) {
                 this.sizeG.append('path')
                     .attr('class', 'size-circle')
+                    .attr('id', `size-circle-${i}`)
                     .attr('transform', `translate(${this.legendR} ${this.legendR})`)
                     .attr('fill', this.sizeColors[i])
                     .attr('d', d3.arc().innerRadius(0).outerRadius(this.sizeR)
@@ -195,6 +206,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart)
@@ -203,6 +215,7 @@ export default {
                 .attr('height', imgHeight);
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart+10)
@@ -245,6 +258,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart)
@@ -253,6 +267,7 @@ export default {
                 .attr('height', imgHeight);
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart-10)
@@ -286,6 +301,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart)
@@ -294,6 +310,7 @@ export default {
                 .attr('height', imgHeight);
             this.sizeG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart+2)
@@ -485,6 +502,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.posG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart)
@@ -493,6 +511,7 @@ export default {
                 .attr('height', imgHeight);
             this.posG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart+2)
@@ -535,6 +554,7 @@ export default {
                 .attr('xlink:href', '/static/images/example.png');
             this.posG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'gt-rect')
                 .attr('stroke', this.gtColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart)
@@ -543,6 +563,7 @@ export default {
                 .attr('height', imgHeight);
             this.posG.append('rect')
                 .attr('fill', 'none')
+                .attr('class', 'pr-rect')
                 .attr('stroke', this.prColor)
                 .attr('stroke-width', this.boxWidth)
                 .attr('x', imgStart+2)

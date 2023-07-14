@@ -717,15 +717,6 @@ export default {
 </script>
 
 <style scoped>
-.select-label {
-    font-weight: normal;
-    font-size: 14px;
-    display: block;
-    float: left;
-    width: 80px;
-    line-height: 28px;
-}
-
 .slices-content {
     height: calc(100% - 2px);
     background: rgb(255, 255, 255);
@@ -741,6 +732,6 @@ export default {
 }
 
 .slices-data-content::-webkit-scrollbar {
-    width: 0px;
+    display: none;
 }
 </style>
