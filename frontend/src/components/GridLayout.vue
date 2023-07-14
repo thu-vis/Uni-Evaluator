@@ -28,7 +28,7 @@
                     <div class="widget-image-container">
                         <svg :id="'gird-widget-image-'+node.index" width="95%" height="95%" :ref="'image-'+node.index">
                             <image class="gird-widget-image" x="0" y="0"
-                            :href="URL_GET_IMAGE(node.index, 'full', node.widgetmode, iouThreshold, confThreshold, true)"></image>
+                            :href="URL_GET_IMAGE(node.index, 'full', node.widgetmode, iouThreshold, confThreshold, gtColor, prColor, true)"></image>
                         </svg>
                     </div>
                 </div>
@@ -172,6 +172,10 @@ export default {
         };
     },
     methods: {
+        updateColors: function(gtColor, prColor) {
+            this.gtColor = gtColor;
+            this.prColor = prColor;
+        },
         zoomin: function(nodes) {
             this.rendering = true;
             if (nodes===undefined) {
@@ -412,6 +416,8 @@ export default {
                     show: that.nodes.length<15?'full':'box',
                     iou: that.iouThreshold,
                     conf: that.confThreshold,
+                    gtColor: that.gtColor,
+                    prColor: that.prColor,
                 }).then((response) => {
                     for (let i=0; i<that.nodes.length; i++) {
                         that.nodes[i].img = `data:image/jpeg;base64,${response.data[i]}`;
@@ -500,7 +506,7 @@ export default {
                         <div>Confidence: ${Math.round(node.confidence*100000)/100000}</div>
                         <div>Type: ${that.getTypeInfo(node.type)}</div>
                     <img class="gird-tooltip-image" src="${getImageGradientURL(node.index, 'full', 'single',
-        that.iouThreshold, that.confThreshold)}"/>
+        that.iouThreshold, that.confThreshold, that.gtColor, that.prColor)}"/>
                     <div id="grid-tooltip-arrow" data-popper-arrow></div>`);
             return tooltip.node();
         },

@@ -79,26 +79,21 @@
                 </div>
             </div>
             <div id="legends-container">
-                <div class="toolbar-title">Legends</div>
-                <legends></legends>
+                <div class="toolbar-title">
+                    <span>Legends</span>
+                    <div class="grid-icons">
+                        <img id="color-setting-icon" class="grid-icon" src="/static/images/setting2.svg" @click="pickColors">
+                    </div>
+                </div>
+                <legends ref="legends"></legends>
             </div>
+            <color-configurator ref="color" @saveColors="saveColors"></color-configurator>
         </div>
-        <div id="matrices-container">
-            <div class="toolbar-title" id="grid-toolbar">
+        <div id="middle-widgets">
+            <div class="toolbar-title">
                 <span>Performance</span>
             </div>
-            <div id="slices-container">
-                <div class="title-font"  id="grid-toolbar">
-                    <span>Subsets</span>
-                    <span style="font-weight: 300; margin-left: 35px;">Minimum subset size:</span>
-                    <el-slider v-model="minSupport" :min="0" :max="0.5" :step="0.1"
-                        style="width: 80px; margin-left: 10px;" @change="changeMinSupport"></el-slider>
-                </div>
-                <div class="slices">
-                    <slices ref="table" :dataSlices="slices" :sliceSplits="sliceSplits" @showSlice="showSlice" :minSupport="minSupport"></slices>
-                </div>
-            </div>
-            <div class="title-font" id="grid-toolbar">
+            <div class="no-bg-title">
                 <span>Matrix</span>
                 <div class="grid-icons">
                     <img id="matrix-normal-icon" class="grid-icon" src="/static/images/square-2.svg" @click="changeShowNormal">
@@ -108,14 +103,23 @@
                     <img id="matrix-zoomin-icon" class="grid-icon" :src="`/static/images/${matrixzoommode}.svg`" @click="matrixzoom">
                 </div>
             </div>
-            <div id="confusion-matrix-container">
+            <div id="matrix-container">
                 <confusion-matrix ref="matrix" @hoverConfusion="hoverConfusion" :matrixMode="matrixMode" @clickCell="clickConfusionCell"
                     :confusionMatrix="confusionMatrix" :classStatistics="classStatistics" :statisticsInfo="statisticsMode"
                     :normalizationMode="normalizationMode"></confusion-matrix>
             </div>
+            <div class="no-bg-title">
+                <span>Subsets</span>
+                <span style="font-weight: 300; margin-left: 35px;">Minimum subset size:</span>
+                <el-slider v-model="minSupport" :min="0" :max="0.5" :step="0.1"
+                    style="width: 80px; margin-left: 10px;" @change="changeMinSupport"></el-slider>
+            </div>
+            <div id="slices-container">
+                <slices ref="table" :dataSlices="slices" :sliceSplits="sliceSplits" @showSlice="showSlice" :minSupport="minSupport"></slices>
+            </div>
         </div>
-        <div id="grid-view-container">
-            <div class="toolbar-title" id="grid-toolbar">
+        <div id="right-widgets">
+            <div class="toolbar-title">
                 <span>Instances</span>
                 <div class="grid-icons">
                     <img id="grid-zoomin-icon" class="grid-icon" src="/static/images/zoomin.svg" @click="initGridLayoutLasso">
@@ -136,6 +140,7 @@ import ScentedBarchart from './ScentedBarchart.vue';
 import GridLayout from './GridLayout.vue';
 import Slices from './Slices.vue';
 import Legends from './Legends.vue';
+import ColorConfigurator from './ColorConfigurator.vue';
 import {Select, Option, Icon, Button, Checkbox, CheckboxGroup, Slider} from 'element-ui';
 import Util from './Util.vue';
 import {mapGetters, mapMutations} from 'vuex';
@@ -149,7 +154,7 @@ Vue.use(CheckboxGroup);
 Vue.use(Slider);
 
 export default {
-    components: {ConfusionMatrix, ScentedBarchart, GridLayout, Slices, Legends},
+    components: {ConfusionMatrix, ScentedBarchart, GridLayout, Slices, Legends, ColorConfigurator},
     name: 'DataView',
     mixins: [Util],
     data() {
@@ -310,6 +315,14 @@ export default {
             'setMatrixDataSource',
             'setGridDataSource',
         ]),
+        pickColors: function() {
+            this.$refs.color.showDialog();
+        },
+        saveColors: function(colors, gtColor, prColor) {
+            this.$refs.legends.updateColors(colors, gtColor, prColor);
+            this.$refs.matrix.updateColors(colors);
+            this.$refs.grid.updateColors(gtColor, prColor);
+        },
         changeMinSupport: function() {
             this.$refs.table.getDataAndRender();
         },
@@ -383,7 +396,8 @@ export default {
             const that = this;
             this.matrixDataPost(store.getters.URL_GET_CONFUSION_MATRIX, query===undefined?{}:{query: query})
                 .then(function(response) {
-                    that.confusionMatrix = response.data;
+                    store.commit('setHierarchy', response.data.hierarchy);
+                    that.confusionMatrix = response.data.matrix;
                     console.log(response.data);
                     that.gettingMatrix = false;
                     that.setClassStatistics();
@@ -566,139 +580,12 @@ export default {
 </script>
 
 <style scoped>
-.select-label {
-    /* font-family: Comic Sans MS; */
-    font-weight: normal;
-    font-size: 10px;
-    display: block;
-    float: left;
-    width: 120px;
-    line-height: 28px;
-}
-
-.mode-select>.el-select {
-    width: 120px;
-}
-.toolbox {
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-}
-
-.mode-select {
-    margin: 2px;
-    display: flex;
-    justify-content: space-around;
-}
-
 #data-content {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: row;
 }
-
-#toolbox-container {
-    display: flex;
-    flex-direction: column;
-}
-
-#barcharts-container {
-    margin: 5px 0 0 0;
-    display: flex;
-    height: 35%;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-#selection-container {
-    margin: 5px 0 0 0;
-    display: flex;
-    flex-direction: column;
-    flex: 100 1 auto;
-    overflow: auto;
-}
-
-#legends-container {
-    /* margin: 5px 0 0 0; */
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-#slices-container {
-    margin: 5px 0 5px 0;
-    display: flex;
-    flex-direction: column;
-    height: 33.4%;
-    overflow: hidden;
-}
-
-.slices {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-}
-
-#selections {
-    height: 100%;
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-    flex: 10 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-#stat {
-    height: 100%;
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-    flex: 10 1 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-#matrices-container {
-    padding: 2px;
-    width: 41%;
-    height: calc(100% - 4px);
-    display: flex;
-    flex-direction: column;
-}
-
-#confusion-matrix-container {
-    /* width: 100%; */
-    height: 100%;
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-}
-
-#cluster-table-container {
-    /* width: 100%; */
-    height: 100%;
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-}
-
-#grid-view-container {
-    padding: 2px;
-    width: 41%;
-    height: calc(100% - 4px);
-    display: flex;
-    flex-direction: column;
-}
-
-#grid-layout-container {
-    /* width: 100%; */
-    height: 100%;
-    border: 1px solid #c1c1c1;
-    border-radius: 5px;
-}
-
 
 #left-widgets {
     padding: 2px;
@@ -723,6 +610,89 @@ export default {
     justify-content: flex-start;
 }
 
+.select-label {
+    /* font-family: Comic Sans MS; */
+    font-weight: normal;
+    font-size: 10px;
+    display: block;
+    float: left;
+    width: 120px;
+    line-height: 28px;
+}
+
+.mode-select>.el-select {
+    width: 120px;
+}
+.toolbox {
+    border: 1px solid #c1c1c1;
+    border-radius: 5px;
+}
+
+.mode-select {
+    margin: 2px;
+    display: flex;
+    justify-content: space-around;
+}
+
+
+#toolbox-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#barcharts-container {
+    margin: 5px 0 0 0;
+    display: flex;
+    height: 35%;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+
+#legends-container {
+    /* margin: 5px 0 0 0; */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#middle-widgets {
+    padding: 2px;
+    width: 41%;
+    height: calc(100% - 4px);
+    display: flex;
+    flex-direction: column;
+}
+
+#matrix-container {
+    /* width: 100%; */
+    height: 75%;
+    border: 1px solid #c1c1c1;
+    border-radius: 5px;
+    margin: 5px 0 0 0;
+}
+
+#slices-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(25% - 20px);
+    overflow: hidden;
+}
+
+#right-widgets {
+    padding: 2px;
+    width: 41%;
+    height: calc(100% - 4px);
+    display: flex;
+    flex-direction: column;
+}
+
+#grid-layout-container {
+    /* width: 100%; */
+    height: 100%;
+    border: 1px solid #c1c1c1;
+    border-radius: 5px;
+}
 
 .grid-icons {
     display: flex;
@@ -733,12 +703,16 @@ export default {
     /* align-self: flex-start; */
 }
 
-.title-font {
+.no-bg-title {
     font-size: 15px;
-    /* font-family: "Roboto", "Helvetica", "Arial", sans-serif; */
     font-weight: 600;
     color: rgb(120, 120, 120);
     padding-left: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 5px;
 }
 
 .grid-icon {
@@ -748,35 +722,10 @@ export default {
     cursor: pointer;
 }
 
-#grid-toolbar {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-#selection-add-icon {
+/* #selection-add-icon {
     margin: 5px 20px 0 0;
     align-self: flex-end;
-}
-
-#color-legends {
-    display: flex;
-    font-weight: normal;
-    font-size: 10px;
-    margin: 0 0 0 80px;
-    align-items: center;
-}
-
-.color-legend-rect {
-    width: 10px;
-    height: 10px;
-    margin: 0 0 0 15px;
-}
-
-.color-legend-text {
-    margin: 0 0 0 3px;
-}
+} */
 
 /deep/ .el-slider__button {
     width: 8px;

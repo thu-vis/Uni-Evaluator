@@ -103,5 +103,9 @@ html, body, #app {
   border-radius: 5px;
   padding-left: 10px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 </style>

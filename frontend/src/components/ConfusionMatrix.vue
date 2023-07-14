@@ -216,7 +216,7 @@ export default {
                 'font-size': 15,
                 'cursor': 'pointer',
                 'direction-color': 'rgb(97,97,97)',
-                'size-color': ['rgb(216,216,216)', 'rgb(255,142,146)', 'rgb(94,197,154)'],
+                'size-color': ['rgb(216,216,216)', 'rgb(250,188,5)', 'rgb(124,198,39)'],
             },
             statAttrs: {
                 'gClass': 'class-stat-g',
@@ -1649,7 +1649,7 @@ export default {
             drawLegend(
                 {
                     color: this.colorScaleDefault,
-                    title: 'Probability',
+                    title: this.normalizationMode==='total'?'Number':'Probability',
                     width: this.legendWidth,
                     ticks: 6,
                 },
@@ -1807,6 +1807,13 @@ export default {
         directionArrowScale: function(x) {
             if (x < 0.05 + 0.001) return 10/36;
             return Math.max(2/36, d3.scaleLinear([0.3, 1], [9/36, -1/2])(x));
+        },
+        updateColors: function(colors) {
+            this.cellAttrs['size-color'] = colors;
+            for (let i = 0; i < 3; ++i) {
+                this.matrixCellsG.selectAll(`#size-circle-${i}`)
+                    .attr('fill', colors[i]);
+            }
         },
     },
 };

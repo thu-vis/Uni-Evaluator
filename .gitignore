@@ -9,3 +9,5 @@ pics/*
 sa_*.cpp
 *.ipynb
 *.jpeg
+*.so
+*.o

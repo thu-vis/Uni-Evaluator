@@ -299,21 +299,21 @@ class GridInteraction(object):
         }
         return res
         
-    def getImagesInGridLayout(self, boxIDs: list, show_mode: str, iou_thres: float, conf_thres: float):
+    def getImagesInGridLayout(self, boxIDs: list, show_mode: str, iou_thres: float, conf_thres: float, gt_color: str, pr_color: str):
         base64Imgs = []
         for boxID in boxIDs:
             if boxID < 0:
-                output = self.contextData.getImage(-boxID, show_mode, 'single', iou_thres, conf_thres, False)
+                output = self.contextData.getImage(-boxID, show_mode, 'single', iou_thres, conf_thres, False, gt_color, pr_color)
             else:
-                output = self.mainData.getImage(boxID, show_mode, 'single', iou_thres, conf_thres, False)
+                output = self.mainData.getImage(boxID, show_mode, 'single', iou_thres, conf_thres, False, gt_color, pr_color)
             base64Imgs.append(base64.b64encode(output.getvalue()).decode())
         return base64Imgs
 
-    def getImageThumbnail(self, boxID: int, showall: str, iou_thres: float, conf_thres: float, hideBox = False):
+    def getImageThumbnail(self, boxID: int, showall: str, iou_thres: float, conf_thres: float, gt_color: str, pr_color: str, hideBox = False):
         if boxID < 0:
-            return self.contextData.getImage(-boxID, 'all', showall, iou_thres, conf_thres, hideBox)
+            return self.contextData.getImage(-boxID, 'all', showall, iou_thres, conf_thres, hideBox, gt_color, pr_color)
         else:
-            return self.mainData.getImage(boxID, 'all', showall, iou_thres, conf_thres, hideBox)
+            return self.mainData.getImage(boxID, 'all', showall, iou_thres, conf_thres, hideBox, gt_color, pr_color)
 
     def getImageBoxDetail(self, boxID: int, showall: str, iou_thres: float, conf_thres: float):
         if boxID < 0:

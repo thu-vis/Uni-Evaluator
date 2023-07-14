@@ -88,10 +88,16 @@ def imageGradient():
     showall = request.args['showall']
     iou_thres = float(request.args['iou'])
     conf_thres = float(request.args['conf'])
+    gt_color = request.args['gtColor']
+    if len(gt_color) == 6:
+        gt_color = '#' + gt_color
+    pr_color = request.args['prColor']
+    if len(pr_color) == 6:
+        pr_color = '#' + pr_color
     hideBox = False
     if 'hidebox' in request.args:
         hideBox = request.args['hidebox']=='true'
-    image_binary = gridInteraction.getImageThumbnail(boxID, showall, iou_thres, conf_thres, hideBox).getvalue()
+    image_binary = gridInteraction.getImageThumbnail(boxID, showall, iou_thres, conf_thres, gt_color, pr_color, hideBox).getvalue()
     response = make_response(image_binary)
     response.headers.set('Content-Type', 'image/jpeg')
     response.headers.set(
@@ -105,7 +111,9 @@ def imagesGradient():
     showmode = request.json['show']
     iou_thres = request.json['iou']
     conf_thres = request.json['conf']
-    return jsonify(gridInteraction.getImagesInGridLayout(boxIDs, showmode, iou_thres, conf_thres))
+    gt_color = request.json['gtColor']
+    pr_color = request.json['prColor']
+    return jsonify(gridInteraction.getImagesInGridLayout(boxIDs, showmode, iou_thres, conf_thres, gt_color, pr_color))
 
 @app.route('/api/imagesInCell', methods=["POST"])
 def confusionMatrixCell():
