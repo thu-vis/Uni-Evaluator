@@ -5,6 +5,7 @@
 
 ![demo](demo.gif)
 
+An online demo: [demo](http://thuvis.org:8084/)
 
 ## Quick start
 ### 1. Download repo
