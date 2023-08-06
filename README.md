@@ -1,7 +1,7 @@
 # Uni-Evaluator: A unified interactive model evaluation for classification, object detection, and instance segmentation in computer vision
 
-
 **Uni-Evaluator** is a visual analysis tool to support a unified model evaluation for different computer vision tasks, including classification, object detection, and instance segmentation.
+More information, including the video and live demo, can be found [here](http://uni-evaluator.thuvis.org/). 
 
 ![demo](demo.gif)
 
