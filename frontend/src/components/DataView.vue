@@ -333,10 +333,10 @@ export default {
             this.$refs.grid.initLayout();
         },
         changeIouThreshold: function() {
-            this.query['iou_thres'] = this.iouThreshold;
-            that.fetchAllBarchartData();
             const that = this;
             const store = this.$store;
+            this.query['iou_thres'] = this.iouThreshold;
+            this.fetchAllBarchartData();
             this.$refs.grid.clearImageWidgets();
             if (this.selectLabels === undefined) {
                 setTimeout(function() {
