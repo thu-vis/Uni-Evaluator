@@ -360,7 +360,7 @@ class DataCtrler(object):
 
     def compute_label_predict_pair(self):
 
-        def compute_per_image(detections, labels, pos_thres, conf_thres, bg_thres=0.1):
+        def compute_per_image(detections, labels, pos_thres, conf_thres, bg_thres=0.1, max_det=100):
             if not self.segmentation:
                 pr_bbox = detections[:, 2:6]
                 pr_cat = detections[:, 0].astype(np.int32)
@@ -385,13 +385,16 @@ class DataCtrler(object):
             # 5~8 for Dup, Cls+Dup, Loc+Dup, and Cls+Loc+Dup
             # 9 for Bkgd, 10 for Miss
             # 11 for Cls+Dup (only one for each gt), 12 Cls+Loc+Dup (only one for each gt)
-            # 13 for train gt
             ret_type = np.zeros(0, dtype=np.int32)
             pr_idx = np.where(pr_conf > conf_thres)[0]
             pr_idx = pr_idx[np.argsort(-pr_conf[pr_idx])]
             gt_match_cnt = np.zeros_like(gt_cat)
             gt_find_tp = np.zeros_like(gt_cat)
+            cat_match_cnt = [0 for _ in range(len(self.names))]
             for _pr_idx in pr_idx:
+                cat_match_cnt[pr_cat[_pr_idx]] += 1
+                if cat_match_cnt[pr_cat[_pr_idx]] > max_det:
+                    continue
                 possible_match_gt = np.where(iou_pair[_pr_idx, :]>bg_thres)[0]
                 if len(possible_match_gt) == 0:
                     ret_ious = np.concatenate((ret_ious, [0]))
@@ -423,7 +426,7 @@ class DataCtrler(object):
                     # if cannot match with not iscrowd gt, try if can match with iscrowd gt
                     if not find_TP_match and len(is_crowd_match) > 0:
                         # if cannot find TP match and can match with iscrowd object, ignore
-                        if iou_pair[_pr_idx, is_crowd_match[0]] > pos_thres:
+                        if iou_pair[_pr_idx, is_crowd_match[0]] >= pos_thres:
                             continue
                     if len(not_is_crowd_match) > 0:
                         gt_match_cnt[best_match] += 1
@@ -449,6 +452,12 @@ class DataCtrler(object):
                         ret_type = np.concatenate((ret_type, [6])) # Cls
                     else:
                         ret_type = np.concatenate((ret_type, [8])) # Cls+Loc
+                    continue
+                # some pr may be matched with iscrowd gt, but did not reach a large enough iou, cannot be processed above
+                ret_ious = np.concatenate((ret_ious, [0]))
+                ret_match = np.concatenate((ret_match, np.array([[_pr_idx, -1]])))
+                ret_type = np.concatenate((ret_type, [9])) # Bkgd
+
             for _gt_idx in np.where(gt_iscrowd==0)[0]:
                 # if not matched as TP, Loc or Cls, consider as Miss (even if matched as Cls+Loc)
                 if _gt_idx not in ret_match[ret_type!=8,1]:
@@ -1026,15 +1035,15 @@ class DataCtrler(object):
         ap = query['ap']
         ret_arr = []
         TP_prs = pairs[types==1, 0]
-        for i in range(len(self.classID2Idx)-1):
-            cat_prs = pairs[np.logical_and(pairs[:, 0]!=-1, self.raw_predicts[pairs[:, 0], 0]==i), 0]
+        for cat_id in range(len(self.classID2Idx)-1):
+            cat_prs = pairs[np.logical_and(pairs[:, 0]!=-1, self.raw_predicts[pairs[:, 0], 0]==cat_id), 0]
             cat_prs = cat_prs[np.argsort(-self.raw_predicts[cat_prs, 1])]
             tp = np.isin(cat_prs, TP_prs)
             fp = ~tp
             tp = np.cumsum(tp)
             fp = np.cumsum(fp)
             nd = len(tp)
-            gt_count = np.count_nonzero(self.raw_labels[np.unique(pairs[pairs[:,1]!=-1, 1]), 0]==i)
+            gt_count = np.count_nonzero(self.raw_labels[np.unique(pairs[pairs[:,1]!=-1, 1]), 0]==cat_id)
             if ap == 2: # quantity of gt
                 ret_arr.append(gt_count)
                 continue

@@ -1657,7 +1657,7 @@ export default {
         },
         isHideCell: function(cell) {
             const isHideNode = function(node) {
-                return node.expand===true && node.children.length>0;
+                return node===undefined || (node.expand===true && node.children.length>0);
             };
             return isHideNode(this.showNodes[cell.row]) || isHideNode(this.showNodes[cell.column]);
         },
