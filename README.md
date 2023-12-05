@@ -5,7 +5,7 @@ More information, including the video and live demo, can be found [here](http://
 
 ![demo](demo.gif)
 
-An online demo: [demo](http://thuvis.org:8084/)
+We further cleaned the annotations of the COCO validation dataset after the case study shown in our paper. The COCO-format annotation file can be downloaded via [this link](https://cloud.tsinghua.edu.cn/f/565b84bb76e840d7ace7/?dl=1).
 
 ## Quick start
 ### 1. Download repo
@@ -66,4 +66,16 @@ cd ../
 # start frontend
 cd frontend
 yarn start
+```
+
+## Citation
+If you use this code or the cleaned annotations of COCO validation data for your research, please consider citing:
+```
+@article{chen2023unified,
+  title={A unified interactive model evaluation for classification, object detection, and instance segmentation in computer vision},
+  author={Chen, Changjian and Guo, Yukai and Tian, Fengyuan and Liu, Shilong and Yang, Weikai and Wang, Zhaowei and Wu, Jing and Su, Hang and Pfister, Hanspeter and Liu, Shixia},
+  journal={IEEE Transactions on Visualization and Computer Graphics},
+  year={2023},
+  publisher={IEEE}
+}
 ```
